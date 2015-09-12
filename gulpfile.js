@@ -1,4 +1,4 @@
-// Gulp tasks for MNML
+// Gulp tasks for Prototype
 
 // Load plugins
 var gulp = require('gulp'),
@@ -11,16 +11,16 @@ var gulp = require('gulp'),
     minifyCSS = require('gulp-minify-css'),
     sass = require('gulp-sass'),
     csslint = require('gulp-csslint'),
-    browserSync = require('browser-sync').create('mnml'),
+    browserSync = require('browser-sync').create('prototype'),
     browserReload = browserSync.reload;
 
 
 // Minify all css files in the css directory
 // Run this in the root directory of the project with `gulp minify-css `
 gulp.task('minify-css', function(){
-  gulp.src('./css/mnml.css')
+  gulp.src('./css/style.css')
     .pipe(minifyCSS())
-    .pipe(rename('mnml.min.css'))
+    .pipe(rename('style.min.css'))
     .pipe(size({gzip:true, showFiles: true}))
     .pipe(gulp.dest('./css/'));
 });
@@ -37,7 +37,7 @@ gulp.task('minify-img', function(){
 // Use csslint without box-sizing or compatible vendor prefixes (these
 // don't seem to be kept up to date on what to yell about)
 gulp.task('csslint', function(){
-  gulp.src('./css/mnml.css')
+  gulp.src('./css/style.css')
     .pipe(csslint({
           'compatible-vendor-prefixes': false,
           'box-sizing': false,
@@ -49,7 +49,7 @@ gulp.task('csslint', function(){
 
 // Task that compiles scss files down to good old css
 gulp.task('pre-process', function(){
-    return gulp.src("./sass/mnml.scss")
+    return gulp.src("./sass/style.scss")
         .pipe(sass())
         .on('error', swallowError)
         .pipe(prefix())

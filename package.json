@@ -1,7 +1,7 @@
 {
   "name": "mn-ml",
   "version": "2.4.0",
-  "description": "Minimal template for building responsive prototypes with html5 and sass based on MNML by @mrmrs",
+  "description": "Template for building responsive prototypes with html5 and sass based on MNML by @mrmrs",
   "homepage": "",
   "repository": {
     "type": "git",
