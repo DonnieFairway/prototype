@@ -57,7 +57,7 @@ gulp.task('pre-process', function(){
         .pipe(size({gzip: true, showFiles: true}))
         .pipe(gulp.dest('css'))
         .pipe(minifyCSS())
-        .pipe(rename('mnml.min.css'))
+        .pipe(rename('style.min.css'))
         .pipe(size({gzip: false, showFiles: true}))
         .pipe(size({gzip: true, showFiles: true}))
         .pipe(gulp.dest('./css/'))
