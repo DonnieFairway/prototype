@@ -9,6 +9,7 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     imagemin = require('gulp-imagemin'),
     minifyCSS = require('gulp-minify-css'),
+    uncss = require('gulp-uncss'),
     sass = require('gulp-sass'),
     csslint = require('gulp-csslint'),
     jshint = require('gulp-jshint'),
@@ -66,6 +67,9 @@ gulp.task('pre-process', function(){
         .pipe(size({gzip: false, showFiles: true}))
         .pipe(size({gzip: true, showFiles: true}))
         .pipe(gulp.dest('css'))
+        .pipe(uncss({
+            html: ['*.html']
+        }))
         .pipe(minifyCSS())
         .pipe(rename('app.min.css'))
         .pipe(size({gzip: false, showFiles: true}))
