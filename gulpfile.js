@@ -30,6 +30,16 @@ gulp.task('minify-css', function(){
     .pipe(gulp.dest('css/'));
 });
 
+
+// Run uncss to remove unused classes
+gulp.task('uncss', ['minify-css'], function () {
+    return gulp.src('css/*.css')
+        .pipe(uncss({
+            html: ['*.html']
+        }))
+        .pipe(gulp.dest('css/'));
+});
+
 // Minify images
 gulp.task('minify-img', function(){
   gulp.src('img/*')
@@ -67,9 +77,6 @@ gulp.task('pre-process', function(){
         .pipe(size({gzip: false, showFiles: true}))
         .pipe(size({gzip: true, showFiles: true}))
         .pipe(gulp.dest('css'))
-        .pipe(uncss({
-            html: ['*.html']
-        }))
         .pipe(minifyCSS())
         .pipe(rename('app.min.css'))
         .pipe(size({gzip: false, showFiles: true}))
@@ -90,7 +97,7 @@ gulp.task('scripts', function() {
     .pipe(browserSync.stream({match: '**/*.js'}));
 });
 
-// Include HTML partials
+// File include for HTML partials and such
 gulp.task('fileinclude', function() {
   gulp.src(['views/*.html'])
     .pipe(fileinclude({
@@ -104,7 +111,9 @@ gulp.task('fileinclude', function() {
 // browsers to reload on filesave
 gulp.task('browser-sync', function() {
     browserSync.init({
-        server: true
+        server: true,
+        // Open the site in Chrome
+        browser: "google chrome"
     });
 });
 
@@ -124,9 +133,11 @@ function swallowError(error) {
 
 */
 gulp.task('default', ['pre-process', 'browser-sync'], function(){
-  gulp.start('clean', 'fileinclude', 'pre-process', 'scripts', 'csslint', 'minify-img');
+  gulp.start('clean', 'fileinclude', 'pre-process', 'scripts', 'csslint');
   gulp.watch('sass/**/*', ['pre-process']);
   gulp.watch('js/*.js', ['scripts']);
   gulp.watch('views/**/*', ['fileinclude']);
   gulp.watch('*.html', browserReload);
 });
+
+gulp.task('build', ['clean', 'fileinclude', 'pre-process', 'uncss', 'scripts', 'minify-img']);
