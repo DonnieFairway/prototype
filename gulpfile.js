@@ -13,6 +13,7 @@ var gulp = require('gulp'),
     csslint = require('gulp-csslint'),
     jshint = require('gulp-jshint'),
     uglify = require('gulp-uglify'),
+    concat = require('gulp-concat'),
     fileinclude = require('gulp-file-include'),
     del = require('del'),
     browserSync = require('browser-sync').create('mnml'),
@@ -73,18 +74,19 @@ gulp.task('pre-process', function(){
         .pipe(browserSync.stream({match: '**/*.css'}));
 });
 
-// Use jslint and uglify
+// Concat js and use jslint and uglify
 gulp.task('scripts', function() {
-  return gulp.src('js/app.js')
+  return gulp.src('js/**/*.js')
     .pipe(jshint())
     .pipe(jshint.reporter('default'))
+    .pipe(concat('app.js'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
     .pipe(gulp.dest('scripts/'))
     .pipe(browserSync.stream({match: '**/*.js'}));
 });
 
-// File include for HTML partials and such
+// Include HTML partials
 gulp.task('fileinclude', function() {
   gulp.src(['views/*.html'])
     .pipe(fileinclude({
