@@ -87,7 +87,7 @@ gulp.task('pre-process', function(){
 
 // Concat js and use jslint and uglify
 gulp.task('scripts', function() {
-  return gulp.src('js/**/*.js')
+  return gulp.src(['js/vendor/**/*.js', 'js/**/*.js'])
     .pipe(jshint())
     .pipe(jshint.reporter('default'))
     .pipe(concat('app.js'))
