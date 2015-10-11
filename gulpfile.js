@@ -17,48 +17,54 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     fileinclude = require('gulp-file-include'),
     del = require('del'),
-    browserSync = require('browser-sync').create('mnml'),
+    browserSync = require('browser-sync').create(),
     browserReload = browserSync.reload;
+
+// Clean
+gulp.task('clean', function() {
+  return del('build/**/*');
+});
+
+// Copy all assets
+gulp.task('copy', function(){
+  return gulp.src('src/assets/**/*', { base: 'src' })
+    .pipe(gulp.dest('build/'));
+});
 
 // Minify all css files in the css directory
 // Run this in the root directory of the project with `gulp minify-css `
 gulp.task('minify-css', function(){
-  gulp.src('css/app.css')
+  gulp.src('build/css/app.css')
     .pipe(minifyCSS())
     .pipe(rename('app.min.css'))
     .pipe(size({gzip:true, showFiles: true}))
-    .pipe(gulp.dest('css/'));
+    .pipe(gulp.dest('build/css/'));
 });
-
 
 // Run uncss to remove unused classes
 gulp.task('uncss', ['minify-css'], function () {
-    return gulp.src('css/*.css')
+    return gulp.src('build/*.css')
         .pipe(uncss({
-            html: ['*.html']
+            html: ['build/*.html']
         }))
-        .pipe(gulp.dest('css/'));
+        .pipe(minifyCSS())
+        .pipe(gulp.dest('build'));
 });
 
 // Minify images
 gulp.task('minify-img', function(){
-  gulp.src('img/*')
+  gulp.src('build/assets/img/**/*')
     .pipe(imagemin({
         progressive: true,
         svgoPlugins: [{removeViewBox: false}],
     }))
-    .pipe(gulp.dest('img/'));
-});
-
-// Clean
-gulp.task('clean', function(cb) {
-    del(['*.html'], cb)
+    .pipe(gulp.dest('build/assets/img'));
 });
 
 // Use csslint without box-sizing or compatible vendor prefixes (these
 // don't seem to be kept up to date on what to yell about)
 gulp.task('csslint', function(){
-  gulp.src('css/styles.css')
+  gulp.src('build/main.min.css')
     .pipe(csslint({
           'compatible-vendor-prefixes': false,
           'box-sizing': false,
@@ -69,51 +75,52 @@ gulp.task('csslint', function(){
 });
 
 // Task that compiles scss files down to good old css
-gulp.task('pre-process', function(){
-    return gulp.src('sass/app.scss')
-        .pipe(sass())
-        .on('error', swallowError)
-        .pipe(prefix())
-        .pipe(size({gzip: false, showFiles: true}))
-        .pipe(size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest('css'))
-        .pipe(minifyCSS())
-        .pipe(rename('app.min.css'))
-        .pipe(size({gzip: false, showFiles: true}))
-        .pipe(size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest('css/'))
-        .pipe(browserSync.stream({match: '**/*.css'}));
+gulp.task('pre-process', function() {
+    return gulp.src('src/sass/main.scss')
+      .pipe(sass())
+      .on('error', swallowError)
+      .pipe(prefix())
+      .pipe(size({gzip: false, showFiles: true}))
+      .pipe(size({gzip: true, showFiles: true}))
+      //.pipe(gulp.dest('build'))
+      .pipe(minifyCSS())
+      .pipe(rename('main.min.css'))
+      .pipe(size({gzip: false, showFiles: true}))
+      .pipe(size({gzip: true, showFiles: true}))
+      .pipe(gulp.dest('build'))
+      .pipe(browserSync.stream({match: '**/*.css'}));
 });
 
 // Concat js and use jslint and uglify
 gulp.task('scripts', function() {
-  return gulp.src(['js/vendor/**/*.js', 'js/**/*.js'])
+  return gulp.src(['src/scripts/libs/**/*.js', 'src/scripts/**/*.js'])
     .pipe(jshint())
     .pipe(jshint.reporter('default'))
     .pipe(concat('app.js'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
-    .pipe(gulp.dest('scripts/'))
+    .pipe(gulp.dest('build'))
     .pipe(browserSync.stream({match: '**/*.js'}));
 });
 
 // File include for HTML partials and such
-gulp.task('fileinclude', function() {
-  gulp.src(['views/*.html'])
+gulp.task('views', function() {
+  gulp.src(['src/views/*.html'])
     .pipe(fileinclude({
       prefix: '@@',
-      basepath: 'views/includes/'
+      basepath: 'src/views/includes/'
     }))
-    .pipe(gulp.dest('./'));
+    .pipe(gulp.dest('build'));
 });
 
 // Initialize browser-sync which starts a static server also allows for
 // browsers to reload on filesave
 gulp.task('browser-sync', function() {
     browserSync.init({
-        server: true,
+        server: 'build',
         // Open the site in Chrome
-        browser: "google chrome"
+        browser: "google chrome",
+        open: false
     });
 });
 
@@ -125,6 +132,17 @@ function swallowError(error) {
 }
 
 /*
+  GULP WATCH
+*/
+gulp.task('watch', function(){
+  gulp.watch('src/assets/**/*', ['copy']);
+  gulp.watch('src/sass/**/*.scss', ['pre-process']);
+  gulp.watch('src/scripts/**/*.js', ['scripts']);
+  gulp.watch('src/views/**/*', ['views']);
+  gulp.watch('build/*.html', browserReload); 
+});
+
+/*
    DEFAULT TASK
 
  • Process sass then auto-prefixes and lints outputted css
@@ -132,12 +150,6 @@ function swallowError(error) {
  • Reloads browsers when you change html or sass files
 
 */
-gulp.task('default', ['pre-process', 'browser-sync'], function(){
-  gulp.start('clean', 'fileinclude', 'pre-process', 'scripts', 'csslint');
-  gulp.watch('sass/**/*', ['pre-process']);
-  gulp.watch('js/*.js', ['scripts']);
-  gulp.watch('views/**/*', ['fileinclude']);
-  gulp.watch('*.html', browserReload);
-});
+gulp.task('default', ['browser-sync', 'clean', 'copy', 'views', 'pre-process', 'scripts', 'csslint', 'watch']);
 
-gulp.task('build', ['clean', 'fileinclude', 'pre-process', 'uncss', 'scripts', 'minify-img']);
+gulp.task('build', ['clean', 'copy', 'views', 'pre-process', 'uncss', 'scripts', 'minify-img']);
