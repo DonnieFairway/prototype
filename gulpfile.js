@@ -31,18 +31,8 @@ gulp.task('copy', function(){
     .pipe(gulp.dest('build/'));
 });
 
-// Minify all css files in the css directory
-// Run this in the root directory of the project with `gulp minify-css `
-gulp.task('minify-css', function(){
-  gulp.src('build/css/app.css')
-    .pipe(minifyCSS())
-    .pipe(rename('app.min.css'))
-    .pipe(size({gzip:true, showFiles: true}))
-    .pipe(gulp.dest('build/css/'));
-});
-
 // Run uncss to remove unused classes
-gulp.task('uncss', ['minify-css'], function () {
+gulp.task('uncss', ['pre-process'], function () {
     return gulp.src('build/*.css')
         .pipe(uncss({
             html: ['build/*.html']
@@ -80,12 +70,10 @@ gulp.task('pre-process', function() {
       .pipe(sass())
       .on('error', swallowError)
       .pipe(prefix())
-      .pipe(size({gzip: false, showFiles: true}))
       .pipe(size({gzip: true, showFiles: true}))
       //.pipe(gulp.dest('build'))
       .pipe(minifyCSS())
       .pipe(rename('main.min.css'))
-      .pipe(size({gzip: false, showFiles: true}))
       .pipe(size({gzip: true, showFiles: true}))
       .pipe(gulp.dest('build'))
       .pipe(browserSync.stream({match: '**/*.css'}));
